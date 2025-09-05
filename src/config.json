@@ -1,0 +1,167 @@
+{
+  "_config_info": {
+    "name": "Vietnamese RAG System Configuration",
+    "version": "1.0.0",
+    "description": "RAG system optimized for Vietnamese documents using BGE-M3 embeddings"
+  },
+
+  "data_paths": {
+    "_description": "All paths relative to project root",
+    "input": {
+      "pdf_documents": "data/pdfs"
+    },
+    "output": {
+      "processed_documents": "data/processed",
+      "rag_system": "data/rag_system",
+      "vector_database": "data/milvus.db",
+      "logs": "logs"
+    },
+    "generated_files": {
+      "processed_docs": "data/processed/processed_docs.pkl",
+      "metadata": "data/processed/metadata.json",
+      "rag_config": "data/rag_system/rag_config.json",
+      "rag_metadata": "data/rag_system/rag_metadata.json",
+      "milvus_metadata": "data/rag_system/milvus_metadata.json"
+    }
+  },
+
+  "document_processing": {
+    "_description": "PDF processing and text chunking settings optimized for local execution",
+    "chunking": {
+      "max_tokens_per_chunk": 1024,
+      "overlap_tokens": 128,
+      "chars_per_token": 3,
+      "safety_margin": 50
+    },
+    "batch_processing": {
+      "batch_size": 16,
+      "max_retries": 3
+    }
+  },
+
+  "embedding_model": {
+    "_description": "BGE-M3 multilingual embedding model configuration optimized for local CPU",
+    "model_id": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "use_hybrid_search": true,
+    "model_kwargs": {
+      "device": "cpu",
+      "trust_remote_code": true
+    },
+    "encode_kwargs": {
+      "normalize_embeddings": true,
+      "batch_size": 8,
+      "return_dense": true,
+      "return_sparse": true,
+      "return_colbert_vecs": false
+    }
+  },
+
+  "reranker_model": {
+    "_description": "BGE Reranker for improving search relevance - optimized for local CPU",
+    "model_id": "BAAI/bge-reranker-v2-m3",
+    "use_fp16": false,
+    "max_length": 512
+  },
+
+  "vector_database": {
+    "_description": "Milvus vector database configuration with Docker support and HNSW indexing",
+    "connection": {
+      "uri": "data/milvus.db",
+      "docker_uri": "http://localhost:19530",
+      "use_docker": false,
+      "collection_name": "vndoc_rag_hybrid"
+    },
+    "hybrid_search": {
+      "dense_weight": 0.7,
+      "sparse_weight": 0.3,
+      "rrf_k": 30
+    },
+    "indexing": {
+      "dense_index": {
+        "index_type": "HNSW",
+        "metric_type": "COSINE",
+        "params": {
+          "M": 16,
+          "efConstruction": 64
+        }
+      },
+      "dense_index_fallback": {
+        "index_type": "IVF_FLAT",
+        "metric_type": "COSINE",
+        "params": {
+          "nlist": 256
+        }
+      },
+      "sparse_index": {
+        "index_type": "SPARSE_INVERTED_INDEX",
+        "metric_type": "IP",
+        "params": {
+          "drop_ratio_build": 0.2
+        }
+      }
+    },
+    "search_params": {
+      "dense_search_params": {
+        "metric_type": "COSINE",
+        "params": {
+          "ef": 32
+        }
+      },
+      "dense_search_params_fallback": {
+        "metric_type": "COSINE", 
+        "params": {
+          "nprobe": 8
+        }
+      },
+      "sparse_search_params": {
+        "metric_type": "IP",
+        "params": {
+          "drop_ratio_search": 0.2
+        }
+      }
+    }
+  },
+
+  "search_retrieval": {
+    "_description": "Search and retrieval behavior settings optimized for local performance",
+    "vector_search": {
+      "default_k": 10,
+      "similarity_threshold": 0.3
+    },
+    "reranking": {
+      "rerank_top_k": 3
+    },
+    "response_generation": {
+      "max_context_length": 4096
+    }
+  },
+
+  "logging": {
+    "_description": "Logging configuration for different stages",
+    "level": "WARNING",
+    "files": {
+      "preprocessing": "logs/preprocess.log",
+      "rag_building": "logs/builder.log",
+      "retrieval": "logs/retriever.log",
+      "errors": "logs/errors.log"
+    },
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  },
+
+  "system_optimization": {
+    "_description": "System-level optimizations for local execution",
+    "memory_management": {
+      "gc_frequency": 3,
+      "enable_torch_gc": true,
+      "clear_cache_between_batches": true
+    }
+  },
+
+  "prompts": {
+    "_description": "Prompt templates for different use cases",
+    "default_vietnamese": "Bạn là một chuyên gia trí tuệ nhân tạo và học máy có kiến thức sâu rộng. Hãy trả lời câu hỏi dựa trên thông tin được cung cấp từ hệ thống RAG.\n\nCÂU HỎI: {query}\n\nTHÔNG TIN THAM KHẢO:\n{context}\n\nHƯỚNG DẪN TRẢ LỜI:\n1. Trả lời bằng tiếng Việt một cách chi tiết và rõ ràng\n2. Sử dụng thông tin từ các tài liệu có độ liên quan cao\n3. Giải thích các thuật ngữ kỹ thuật bằng tiếng Việt\n4. Trích dẫn nguồn khi phù hợp\n5. Nếu thông tin không đủ, chỉ ra phần nào cần bổ sung",
+    "academic_research": "Dựa trên các tài liệu nghiên cứu được cung cấp, hãy phân tích và trả lời câu hỏi sau:\n\nCâu hỏi: {query}\n\nTài liệu tham khảo:\n{context}\n\nYêu cầu:\n- Phân tích có căn cứ khoa học\n- Trích dẫn cụ thể từ tài liệu\n- Đánh giá độ tin cậy của thông tin",
+    "technical_qa": "Trả lời câu hỏi kỹ thuật sau dựa trên tài liệu hướng dẫn:\n\nCâu hỏi: {query}\n\nTài liệu kỹ thuật:\n{context}\n\nYêu cầu:\n- Trả lời chính xác và chi tiết\n- Bao gồm ví dụ cụ thể nếu có\n- Chỉ ra các bước thực hiện rõ ràng"
+  }
+}
