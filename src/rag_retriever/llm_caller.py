@@ -12,7 +12,7 @@ from langchain.schema import Document
 from ..constant import PROMPT
 from ..utils.logging import get_logger
 from .models.base_llm import BaseLLM
-from .models.factory import get_llm
+from .models.factory import LLMFactory
 
 logger = get_logger("rag.llm.caller")
 
@@ -43,7 +43,7 @@ class RAGLLMCaller:
         if self.llm is None:
             # Combine init kwargs with runtime kwargs
             combined_kwargs = {**self.model_kwargs, **kwargs}
-            self.llm = get_llm(self.model_type, **combined_kwargs)
+            self.llm = LLMFactory.create_llm(self.model_type, **combined_kwargs)
 
     def _prepare_context(self, documents: List[Document]) -> str:
         """Format documents into context string"""
@@ -128,9 +128,3 @@ def get_rag_llm_caller(model_type: str = "gemini", **kwargs) -> RAGLLMCaller:
     if _rag_llm_caller is None or _rag_llm_caller.model_type != model_type:
         _rag_llm_caller = RAGLLMCaller(model_type=model_type, **kwargs)
     return _rag_llm_caller
-
-
-# Legacy compatibility
-LLMCaller = RAGLLMCaller
-get_llm_caller = get_rag_llm_caller
-get_llm_caller = get_rag_llm_caller

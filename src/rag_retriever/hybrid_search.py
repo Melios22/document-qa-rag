@@ -7,7 +7,7 @@ Contains only the core hybrid_search function and HybridSearcher class.
 """
 
 import gc
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from ..constant import (
     COLLECTION_NAME,
@@ -79,7 +79,7 @@ def hybrid_search(
         # RRF fusion
         if dense_results and sparse_results:
             fused_results = reciprocal_rank_fusion(
-                [dense_results, sparse_results], k=RRF_K
+                dense_results, sparse_results, k=RRF_K
             )
             logger.info(f"RRF fusion combined results: {len(fused_results)}")
         elif dense_results:
@@ -92,12 +92,17 @@ def hybrid_search(
             logger.warning("No results from either search method")
             return []
 
-        # Filter by similarity threshold
-        filtered_results = [
-            result
-            for result in fused_results
-            if result.get("distance", 0.0) >= similarity_threshold
-        ]
+        # Filter by similarity threshold (use appropriate score field)
+        filtered_results = []
+        for result in fused_results:
+            # Get the best available score (RRF score, combined score, or dense score)
+            score = (
+                result.get("rrf_score")
+                or result.get("combined_score")
+                or result.get("dense_score", 0.0)
+            )
+            if score >= similarity_threshold:
+                filtered_results.append(result)
 
         logger.info(f"Final results after filtering: {len(filtered_results)}")
         return filtered_results
@@ -156,9 +161,7 @@ class HybridSearcher:
                 self.embedding_model = get_embedding_model()
 
             # Generate embeddings
-            embeddings = self.embedding_model.encode(
-                [query], return_dense=True, return_sparse=True
-            )
+            embeddings = self.embedding_model.encode([query])
 
             query_embedding = embeddings["dense_vecs"][0]
             query_sparse = embeddings["lexical_weights"][0]

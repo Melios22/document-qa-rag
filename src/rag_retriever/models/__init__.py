@@ -6,7 +6,7 @@ All LLM model implementations for the RAG system.
 """
 
 from .base_llm import BaseLLM
-from .factory import LLMFactory, get_llm
+from .factory import LLMFactory
 from .gemini_llm import GeminiLLM
 from .watsonx_llm import WatsonxLLM
 
@@ -18,6 +18,5 @@ __all__ = [
     "GeminiLLM",
     "WatsonxLLM",
     "LLMFactory",
-    "get_llm",
     # Add your new models here
 ]

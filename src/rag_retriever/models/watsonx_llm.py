@@ -24,10 +24,11 @@ class WatsonxLLM(BaseLLM):
         self,
         model_id: str = "ibm/granite-13b-chat-v2",
         api_key: Optional[str] = None,
-        max_tokens: int = 1024,
+        max_tokens: int = 4096,  # Increased from 1024 to 4096
         temperature: float = 0.0,
         project_id: Optional[str] = None,
         url: Optional[str] = None,
+        **kwargs,
     ):
         """
         Initialize Watsonx LLM.

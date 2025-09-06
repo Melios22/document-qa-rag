@@ -11,8 +11,17 @@ import os
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-from src import build_hybrid_vectorstore, load_documents
+from src import (
+    HAS_RAG_BUILDER,
+    build_hybrid_vectorstore,
+    load_documents,
+    require_rag_builder,
+)
 from src.utils.logging import build_logger as logger
+
+# Ensure we have RAG building components
+if not HAS_RAG_BUILDER:
+    require_rag_builder()
 
 
 def main():

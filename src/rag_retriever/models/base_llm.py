@@ -18,6 +18,7 @@ class BaseLLM(ABC):
         api_key: Optional[str] = None,
         max_tokens: int = 1024,
         temperature: float = 0.0,
+        **kwargs
     ):
         """
         Initialize LLM with common parameters.

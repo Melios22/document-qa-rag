@@ -12,16 +12,12 @@
     },
     "output": {
       "processed_documents": "data/processed",
-      "rag_system": "data/rag_system",
       "vector_database": "data/milvus.db",
       "logs": "logs"
     },
     "generated_files": {
       "processed_docs": "data/processed/processed_docs.pkl",
-      "metadata": "data/processed/metadata.json",
-      "rag_config": "data/rag_system/rag_config.json",
-      "rag_metadata": "data/rag_system/rag_metadata.json",
-      "milvus_metadata": "data/rag_system/milvus_metadata.json"
+      "metadata": "data/processed/metadata.json"
     }
   },
 
@@ -127,7 +123,7 @@
     "_description": "Search and retrieval behavior settings optimized for local performance",
     "vector_search": {
       "default_k": 10,
-      "similarity_threshold": 0.3
+      "similarity_threshold": 0.0
     },
     "reranking": {
       "rerank_top_k": 3
@@ -149,19 +145,8 @@
     "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
   },
 
-  "system_optimization": {
-    "_description": "System-level optimizations for local execution",
-    "memory_management": {
-      "gc_frequency": 3,
-      "enable_torch_gc": true,
-      "clear_cache_between_batches": true
-    }
-  },
-
   "prompts": {
     "_description": "Prompt templates for different use cases",
-    "default_vietnamese": "Bạn là một chuyên gia trí tuệ nhân tạo và học máy có kiến thức sâu rộng. Hãy trả lời câu hỏi dựa trên thông tin được cung cấp từ hệ thống RAG.\n\nCÂU HỎI: {query}\n\nTHÔNG TIN THAM KHẢO:\n{context}\n\nHƯỚNG DẪN TRẢ LỜI:\n1. Trả lời bằng tiếng Việt một cách chi tiết và rõ ràng\n2. Sử dụng thông tin từ các tài liệu có độ liên quan cao\n3. Giải thích các thuật ngữ kỹ thuật bằng tiếng Việt\n4. Trích dẫn nguồn khi phù hợp\n5. Nếu thông tin không đủ, chỉ ra phần nào cần bổ sung",
-    "academic_research": "Dựa trên các tài liệu nghiên cứu được cung cấp, hãy phân tích và trả lời câu hỏi sau:\n\nCâu hỏi: {query}\n\nTài liệu tham khảo:\n{context}\n\nYêu cầu:\n- Phân tích có căn cứ khoa học\n- Trích dẫn cụ thể từ tài liệu\n- Đánh giá độ tin cậy của thông tin",
-    "technical_qa": "Trả lời câu hỏi kỹ thuật sau dựa trên tài liệu hướng dẫn:\n\nCâu hỏi: {query}\n\nTài liệu kỹ thuật:\n{context}\n\nYêu cầu:\n- Trả lời chính xác và chi tiết\n- Bao gồm ví dụ cụ thể nếu có\n- Chỉ ra các bước thực hiện rõ ràng"
+    "default_vietnamese": "Bạn là một chuyên gia trí tuệ nhân tạo và học máy có kiến thức sâu rộng. Hãy trả lời câu hỏi dựa trên thông tin được cung cấp từ hệ thống RAG.\n\nCÂU HỎI: {query}\n\nTHÔNG TIN THAM KHẢO:\n{context}\n\nHƯỚNG DẪN TRẢ LỜI:\n1. Trả lời bằng tiếng Việt một cách chi tiết và rõ ràng\n2. Chỉ sử dụng thông tin có trong các tài liệu được cung cấp - KHÔNG tự bịa đặt hoặc thêm thông tin\n3. Mỗi nguồn tài liệu là riêng biệt - KHÔNG trộn lẫn hoặc kết hợp thông tin từ các nguồn khác nhau một cách tùy tiện\n4. Nếu thông tin từ các nguồn khác nhau mâu thuẫn, hãy chỉ ra sự khác biệt này\n5. Giải thích các thuật ngữ kỹ thuật bằng tiếng Việt\n6. Trích dẫn rõ ràng nguồn thông tin cho mỗi phần trả lời\n7. Nếu thông tin không đủ để trả lời đầy đủ, hãy thừa nhận điều này thay vì đoán"
   }
 }

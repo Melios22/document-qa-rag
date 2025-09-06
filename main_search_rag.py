@@ -8,17 +8,150 @@ using unified Vietnamese RAG class with LLM integration.
 
 import gc
 import os
+from typing import Any, Dict, List, Tuple
 
-from src import COLLECTION_NAME
+from langchain.schema import Document
+
+from src import (
+    COLLECTION_NAME,
+    HAS_RAG_RETRIEVER,
+    VietnameseRAG,
+    load_retrieval_models,
+    require_rag_retriever,
+)
 from src.rag_builder.connection_manager import get_milvus_client
-from src.rag_retriever import VietnameseRAG, get_embedding_model, get_reranker_model
 from src.utils.logging import RAGLogger
 from src.utils.logging import retrieval_logger as logger
+
+# Ensure we have RAG retrieval components
+if not HAS_RAG_RETRIEVER:
+    require_rag_retriever()
 
 # Configure environment
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Force CPU usage
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
+
+def perform_retrieval(rag, query: str) -> Tuple[List[Document], List[float]]:
+    """
+    Perform document retrieval and reranking only.
+
+    Args:
+        rag: The Vietnamese RAG system instance
+        query: The search query
+
+    Returns:
+        Tuple of (documents, rerank_scores)
+    """
+    logger.milestone(f"Starting retrieval for query: {query[:50]}...")
+
+    try:
+        # Use the retriever directly for cleaner separation
+        documents, scores = rag.retriever.retrieve_and_rerank(query)
+
+        logger.info(f"Retrieved {len(documents)} documents with scores")
+        return documents, scores
+
+    except Exception as e:
+        logger.error(f"Error during retrieval: {e}")
+        return [], []
+
+
+def generate_answer(rag, query: str, documents: List[Document]) -> str:
+    """
+    Generate an answer using LLM based on retrieved documents.
+
+    Args:
+        rag: The Vietnamese RAG system instance
+        query: The search query
+        documents: Retrieved documents
+
+    Returns:
+        Dictionary containing answer and metadata
+    """
+    if not documents:
+        return {
+            "success": False,
+            "error": "No documents provided for answer generation",
+            "answer": None,
+        }
+
+    try:
+        logger.milestone(f"Generating answer for query: {query[:50]}...")
+
+        # Use the answer generator directly
+        answer_result = rag.answer_generator.generate_answer(query, documents)
+
+        logger.info("Answer generation completed")
+        return {
+            "success": True,
+            "answer": answer_result.get("answer", ""),
+            "confidence": answer_result.get("confidence", 0.0),
+            "error": None,
+        }
+
+    except Exception as e:
+        logger.error(f"Error during answer generation: {e}")
+        return {"success": False, "error": str(e), "answer": None}
+
+
+def display_results(
+    query: str,
+    documents: List[Document],
+    scores: List[float],
+    answer_result: Dict[str, Any],
+) -> None:
+    """
+    Display the retrieval and answer generation results.
+
+    Args:
+        query: The search query
+        documents: Retrieved documents
+        scores: Document scores
+        answer_result: LLM answer generation result
+    """
+    if not documents:
+        print("❌ No relevant documents found.")
+        return
+
+    # If answer generation succeeded, show only query and answer
+    if answer_result.get("success") and answer_result.get("answer"):
+        print(f"\n🔍 **Query:** {query}")
+        print(f"\n🤖 **Answer:**")
+        print("=" * 50)
+        print(answer_result["answer"])
+
+        # Log the successful Q&A pair
+        retrieval_info = {
+            "num_results": len(documents),
+            "sources": [
+                {
+                    "filename": doc.metadata.get("source_filename", "Unknown"),
+                    "score": score,
+                    "content_length": len(doc.page_content),
+                }
+                for doc, score in zip(documents, scores)
+            ],
+            "confidence": answer_result.get("confidence", 0.0),
+        }
+        RAGLogger.log_qa_pair(query, answer_result["answer"], retrieval_info)
+
+    # If answer generation failed, show LLM calling prompt
+    else:
+        print(f"\n⚠️ **LLM calling failed or returned no answer**")
+        if answer_result.get("error"):
+            print(f"Error: {answer_result['error']}")
+
+        print(f"\n🔍 Query: {query}")
+        print(
+            f"📊 Retrieved {len(documents)} documents but LLM answer generation failed."
+        )
+
+        # Log the failed attempt
+        error_msg = answer_result.get("error", "LLM answer generation failed")
+        retrieval_info = {"num_results": len(documents)}
+        RAGLogger.log_qa_pair(query, f"Failed: {error_msg}", retrieval_info)
 
 
 def main():
@@ -29,9 +162,8 @@ def main():
         logger.info("Loading RAG system components")
 
         # Load individual components using new unified structure
-        client = get_milvus_client()
-        embedding_model = get_embedding_model()
-        reranker_model = get_reranker_model()
+        client, supports_hnsw = get_milvus_client()
+        embedding_model, reranker_model = load_retrieval_models()
 
         rag = VietnameseRAG(
             client=client,
@@ -63,70 +195,16 @@ def main():
 
                 logger.info(f"Processing query: '{query}'")
 
-                # Use new unified answer method for complete RAG flow
-                result = rag.answer(query)
+                # Step 1: Perform retrieval
+                documents, scores = perform_retrieval(rag, query)
 
-                if result.get("success", False) and result.get("sources"):
-                    sources = result["sources"]
-                    logger.info(
-                        f"Generated answer with {len(sources)} source documents"
-                    )
+                # Step 2: Generate answer (if documents found)
+                answer_result = generate_answer(rag, query, documents)
 
-                    print(f"\n🤖 **Answer:**")
-                    print("=" * 50)
-                    print(result["answer"])
-
-                    print(f"\n📋 **Sources** ({len(sources)} documents):")
-                    print("=" * 50)
-
-                    # Prepare answer for logging
-                    retrieval_info = {
-                        "num_results": len(sources),
-                        "sources": [],
-                        "confidence": result.get("confidence", 0.0),
-                    }
-
-                    for i, source in enumerate(sources, 1):
-                        print(f"\n📄 Document {i}")
-                        print("-" * 30)
-
-                        # Show content
-                        content = source.get("content", "")
-                        content_preview = (
-                            content[:500] + "..." if len(content) > 500 else content
-                        )
-                        print(content_preview)
-
-                        filename = source.get("filename", "Unknown")
-                        score = source.get("score", 0.0)
-                        print(f"📎 Source: {filename} (Score: {score:.4f})")
-
-                        retrieval_info["sources"].append(
-                            {
-                                "filename": filename,
-                                "score": score,
-                                "content_length": len(content),
-                            }
-                        )
-
-                    # Log the Q&A pair
-                    RAGLogger.log_qa_pair(query, result["answer"], retrieval_info)
-
-                else:
-                    logger.warning(f"No relevant documents found for query: '{query}'")
-                    print("❌ No relevant documents found or answer generation failed.")
-
-                    error_msg = result.get("error", "No relevant documents found.")
-                    print(f"🔍 Details: {error_msg}")
-
-                    # Log the unsuccessful query
-                    RAGLogger.log_qa_pair(
-                        query, f"Failed: {error_msg}", {"num_results": 0}
-                    )
+                # Step 3: Display results
+                display_results(query, documents, scores, answer_result)
 
                 # Clean up after each query
-                if "result" in locals():
-                    del result
                 gc.collect()
                 logger.info("Memory cleanup completed after query processing")
 
@@ -146,5 +224,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
     main()

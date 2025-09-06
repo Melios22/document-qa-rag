@@ -88,3 +88,38 @@ def load_retrieval_models() -> Tuple[Any, Any, Any]:
 
     logger.milestone("All retrieval models loaded successfully!")
     return client, embedding_model, reranker_model
+
+
+def get_embedding_model():
+    """Load and return BGE-M3 embedding model."""
+    logger.info("Loading BGE-M3 embedding model")
+
+    # Clear memory before loading models
+    gc.collect()
+
+    embedding_model = BGEM3Encoder(
+        model=EMBED_MODEL_ID,
+        device="cpu",  # Force CPU to avoid memory conflicts
+        normalize_embeddings=True,
+        use_fp16=False,  # Set to False to avoid dtype issues
+        max_length=512,
+        batch_size=16,  # Smaller batch size for memory efficiency
+    )
+
+    logger.milestone("BGE-M3 model loaded successfully!")
+    return embedding_model
+
+
+def get_reranker_model():
+    """Load and return BGE reranker model."""
+    logger.info("Loading BGE-Reranker-V2-M3")
+
+    reranker_model = FlagReranker(
+        RERANKER_MODEL_ID,
+        normalize=True,
+        use_fp16=False,  # Disable FP16 to avoid memory issues
+        device="cpu",  # Force CPU to avoid CUDA OOM
+    )
+
+    logger.milestone("BGE Reranker loaded successfully!")
+    return reranker_model

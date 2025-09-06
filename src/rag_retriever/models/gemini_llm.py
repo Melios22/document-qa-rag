@@ -23,8 +23,9 @@ class GeminiLLM:
         self,
         model_id: str = "gemini-2.5-flash",
         api_key: Optional[str] = None,
-        max_tokens: int = 1024,
+        max_tokens: int = 4096,  # Increased from 1024 to 4096
         temperature: float = 0.0,
+        **kwargs,
     ):
         """
         Initialize Gemini LLM.
@@ -47,10 +48,10 @@ class GeminiLLM:
             system_instruction="You are a helpful assistant.",
             max_output_tokens=max_tokens,
             temperature=temperature,
-            thinking_config=types.ThinkingConfig(
-                max_steps=5,
-                stop_sequences=["\n"],
-            ),
+            # thinking_config=types.ThinkingConfig(
+            #     max_steps=5,
+            #     stop_sequences=["\n"],
+            # ),
         )
 
         logger.info(f"Initialized Gemini LLM: {model_id}")
@@ -68,10 +69,10 @@ class GeminiLLM:
         try:
             response = self.llm.models.generate_content(
                 model=self.model_id,
-                prompt=prompt,
+                contents=prompt,
                 config=self.config,
             )
-            result = response.choices[0].text.strip()
+            result = response.text.strip()
             logger.info(f"Generated {len(result)} characters from Gemini")
             return result
 

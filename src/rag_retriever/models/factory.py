@@ -72,19 +72,3 @@ class LLMFactory:
     def list_available_models(cls) -> list:
         """Get list of available model types"""
         return list(cls.MODELS.keys())
-
-
-# Convenience function
-def get_llm(model_type: str = "gemini", **kwargs) -> BaseLLM:
-    """
-    Get an LLM instance (convenience function).
-
-    Args:
-        model_type: Type of model to create
-        **kwargs: Model parameters
-
-    Returns:
-        LLM instance
-    """
-    return LLMFactory.create_llm(model_type=model_type, **kwargs)
-    return LLMFactory.create_llm(model_type=model_type, **kwargs)

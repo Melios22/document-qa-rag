@@ -32,20 +32,10 @@ PDF_INPUT_DIR = PROJECT_ROOT / config["data_paths"]["input"]["pdf_documents"]
 OUTPUT_DIR = PROJECT_ROOT / config["data_paths"]["output"]["processed_documents"]
 OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
-RAG_SYSTEM_DIR = PROJECT_ROOT / config["data_paths"]["output"]["rag_system"]
-RAG_SYSTEM_DIR.mkdir(exist_ok=True, parents=True)
-
 PROCESSED_DOCS_FILE = (
     PROJECT_ROOT / config["data_paths"]["generated_files"]["processed_docs"]
 )
 METADATA_FILE = PROJECT_ROOT / config["data_paths"]["generated_files"]["metadata"]
-RAG_CONFIG_FILE = PROJECT_ROOT / config["data_paths"]["generated_files"]["rag_config"]
-RAG_METADATA_FILE = (
-    PROJECT_ROOT / config["data_paths"]["generated_files"]["rag_metadata"]
-)
-MILVUS_METADATA_FILE = (
-    PROJECT_ROOT / config["data_paths"]["generated_files"]["milvus_metadata"]
-)
 
 # Vector database path
 MILVUS_URI = PROJECT_ROOT / config["vector_database"]["connection"]["uri"]
@@ -107,13 +97,6 @@ SPARSE_SEARCH_PARAMS = config["vector_database"]["search_params"][
     "sparse_search_params"
 ]
 
-# System optimization
-GC_FREQUENCY = config["system_optimization"]["memory_management"]["gc_frequency"]
-ENABLE_TORCH_GC = config["system_optimization"]["memory_management"]["enable_torch_gc"]
-CLEAR_CACHE_BETWEEN_BATCHES = config["system_optimization"]["memory_management"][
-    "clear_cache_between_batches"
-]
-
 # Search & retrieval configuration
 DEFAULT_K = config["search_retrieval"]["vector_search"]["default_k"]
 RERANK_TOP_K = config["search_retrieval"]["reranking"]["rerank_top_k"]
@@ -130,5 +113,3 @@ PROCESSING_SESSION_ID = str(uuid.uuid4())[:8]
 
 # Prompt templates
 PROMPT = config["prompts"]["default_vietnamese"]
-ACADEMIC_PROMPT = config["prompts"]["academic_research"]
-TECHNICAL_PROMPT = config["prompts"]["technical_qa"]

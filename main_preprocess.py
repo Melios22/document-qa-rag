@@ -10,8 +10,18 @@ import os
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-from src import preview_documents, process_pdfs, save_documents
+from src import (
+    HAS_PREPROCESS,
+    preview_documents,
+    process_pdfs,
+    require_preprocess,
+    save_documents,
+)
 from src.utils.logging import preprocess_logger as logger
+
+# Ensure we have preprocessing components
+if not HAS_PREPROCESS:
+    require_preprocess()
 
 
 def main():
