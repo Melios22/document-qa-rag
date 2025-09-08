@@ -11,6 +11,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from google.genai import Client, types
 
+from ...constant import MAX_OUTPUT_TOKENS, TEMPERATURE
 from ...utils.logging import get_logger
 
 logger = get_logger("rag.llm.gemini")
@@ -23,8 +24,8 @@ class GeminiLLM:
         self,
         model_id: str = "gemini-2.5-flash",
         api_key: Optional[str] = None,
-        max_tokens: int = 4096,  # Increased from 1024 to 4096
-        temperature: float = 0.0,
+        max_tokens: int = MAX_OUTPUT_TOKENS,
+        temperature: float = TEMPERATURE,
         **kwargs,
     ):
         """

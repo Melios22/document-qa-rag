@@ -9,7 +9,7 @@ from typing import Optional, Tuple
 
 from pymilvus import MilvusClient
 
-from .. import (
+from ..constant import (
     DENSE_INDEX_CONFIG,
     DENSE_INDEX_FALLBACK_CONFIG,
     DENSE_SEARCH_FALLBACK_PARAMS,

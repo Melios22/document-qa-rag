@@ -127,9 +127,6 @@
     },
     "reranking": {
       "rerank_top_k": 3
-    },
-    "response_generation": {
-      "max_context_length": 4096
     }
   },
 
@@ -146,7 +143,12 @@
   },
 
   "prompts": {
-    "_description": "Prompt templates for different use cases",
+    "_description": "Prompt templates and LLM configuration for different use cases",
+    "llm_config": {
+      "max_context_length": 4096,
+      "max_tokens": 1024,
+      "temperature": 0.3
+    },
     "default_vietnamese": "Bạn là một chuyên gia trí tuệ nhân tạo và học máy có kiến thức sâu rộng. Hãy trả lời câu hỏi dựa trên thông tin được cung cấp từ hệ thống RAG.\n\nCÂU HỎI: {query}\n\nTHÔNG TIN THAM KHẢO:\n{context}\n\nHƯỚNG DẪN TRẢ LỜI:\n1. Trả lời bằng tiếng Việt một cách chi tiết và rõ ràng\n2. Chỉ sử dụng thông tin có trong các tài liệu được cung cấp - KHÔNG tự bịa đặt hoặc thêm thông tin\n3. Mỗi nguồn tài liệu là riêng biệt - KHÔNG trộn lẫn hoặc kết hợp thông tin từ các nguồn khác nhau một cách tùy tiện\n4. Nếu thông tin từ các nguồn khác nhau mâu thuẫn, hãy chỉ ra sự khác biệt này\n5. Giải thích các thuật ngữ kỹ thuật bằng tiếng Việt\n6. Trích dẫn rõ ràng nguồn thông tin cho mỗi phần trả lời\n7. Nếu thông tin không đủ để trả lời đầy đủ, hãy thừa nhận điều này thay vì đoán"
   }
 }

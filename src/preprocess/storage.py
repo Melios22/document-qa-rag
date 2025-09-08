@@ -5,10 +5,10 @@ from typing import Any, Dict, List
 
 from langchain.schema import Document
 
-from .. import (
+from ..constant import (
     CHARS_PER_TOKEN,
     CHUNKER_MODEL,
-    MAX_TOKENS,
+    MAX_CHUNK_TOKENS,
     METADATA_FILE,
     OVERLAP_TOKENS,
     PROCESSED_DOCS_FILE,
@@ -58,7 +58,7 @@ def save_documents(documents: List[Document]) -> Dict[str, Any]:
                 "total_tokens": sum(token_counts),
             },
             "processing_config": {
-                "max_tokens": MAX_TOKENS,
+                "max_tokens": MAX_CHUNK_TOKENS,
                 "overlap_tokens": OVERLAP_TOKENS,
                 "chars_per_token": CHARS_PER_TOKEN,
             },

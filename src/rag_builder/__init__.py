@@ -8,7 +8,7 @@ from .milvus import (
     insert_documents,
 )
 from .model_loader import load_documents, load_embedding_model
-from .vector_bge_m3 import BGEM3Encoder
+from .encoder import BGEM3Encoder
 
 __all__ = [
     "ensure_hybrid_collection",

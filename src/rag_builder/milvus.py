@@ -34,13 +34,8 @@ from pymilvus import (
 )
 from pymilvus.milvus_client.index import IndexParams
 
-from .. import (
-    COLLECTION_NAME,
-    DENSE_INDEX_CONFIG,
-    DENSE_INDEX_FALLBACK_CONFIG,
-    DENSE_SEARCH_FALLBACK_PARAMS,
+from ..constant import (
     DENSE_SEARCH_PARAMS,
-    EMBEDDING_DIM,
     RRF_K,
     SPARSE_INDEX_CONFIG,
     SPARSE_SEARCH_PARAMS,
@@ -58,11 +53,9 @@ def ensure_hybrid_collection(client: MilvusClient, name: str, dense_dim: int) ->
     Returns:
         True if collection was created/recreated, False if it already existed
     """
-    collection_created = False
     if client.has_collection(name):
         logger.info(f"Dropping existing collection: {name}")
         client.drop_collection(name)
-        collection_created = True
 
     schema = CollectionSchema(
         fields=[

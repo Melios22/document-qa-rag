@@ -37,7 +37,7 @@ try:
     from src.rag_builder import load_documents, load_embedding_model, save_config
     from src.rag_builder.builder import build_hybrid_vectorstore
     from src.rag_builder.connection_manager import get_index_config, get_milvus_client
-    from src.rag_builder.vector_bge_m3 import BGEM3Encoder
+    from src.rag_builder.encoder import BGEM3Encoder
 
     HAS_RAG_BUILDER = True
 except ImportError:
@@ -141,9 +141,10 @@ __all__ = [
     "FP16",
     "LOG_FILE_BUILD",
     "LOG_FILE_PREPROCESS",
+    "MAX_CHUNK_TOKENS",
     "MAX_CONTEXT_LENGTH",
+    "MAX_OUTPUT_TOKENS",
     "MAX_RETRIES",
-    "MAX_TOKENS",
     "METADATA_FILE",
     "MILVUS_DOCKER_URI",
     "MILVUS_URI",
@@ -161,6 +162,7 @@ __all__ = [
     "SIMILARITY_THRESHOLD",
     "SPARSE_INDEX_CONFIG",
     "SPARSE_SEARCH_PARAMS",
+    "TEMPERATURE",
     "USE_DOCKER_MILVUS",
     # Conditional components (may be None if dependencies not installed)
     "ChunkMetadataGenerator",

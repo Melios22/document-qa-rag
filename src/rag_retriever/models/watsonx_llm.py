@@ -11,6 +11,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from langchain_ibm import WatsonxLLM as Wastonx
 
+from ...constant import MAX_OUTPUT_TOKENS, TEMPERATURE
 from ...utils.logging import get_logger
 from .base_llm import BaseLLM
 
@@ -24,8 +25,8 @@ class WatsonxLLM(BaseLLM):
         self,
         model_id: str = "ibm/granite-13b-chat-v2",
         api_key: Optional[str] = None,
-        max_tokens: int = 4096,  # Increased from 1024 to 4096
-        temperature: float = 0.0,
+        max_tokens: int = MAX_OUTPUT_TOKENS,
+        temperature: float = TEMPERATURE,
         project_id: Optional[str] = None,
         url: Optional[str] = None,
         **kwargs,

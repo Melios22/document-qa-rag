@@ -22,7 +22,7 @@ from ..constant import EMBED_MODEL_ID  # BGE-M3 model identifier
 from ..constant import FP16  # Use FP16 precision for reranker
 from ..constant import MILVUS_URI  # Milvus database URI
 from ..constant import RERANKER_MODEL_ID  # BGE reranker model identifier
-from ..rag_builder.vector_bge_m3 import BGEM3Encoder
+from ..rag_builder.encoder import BGEM3Encoder
 from ..utils.logging import get_logger
 
 logger = get_logger("rag.retriever.model_loader")

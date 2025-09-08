@@ -69,7 +69,7 @@ RERANKER_MODEL_ID = config["reranker_model"]["model_id"]
 FP16 = config["reranker_model"]["use_fp16"]
 
 # Document processing configuration
-MAX_TOKENS = config["document_processing"]["chunking"]["max_tokens_per_chunk"]
+MAX_CHUNK_TOKENS = config["document_processing"]["chunking"]["max_tokens_per_chunk"]
 OVERLAP_TOKENS = config["document_processing"]["chunking"]["overlap_tokens"]
 CHARS_PER_TOKEN = config["document_processing"]["chunking"]["chars_per_token"]
 SAFETY_MARGIN = config["document_processing"]["chunking"]["safety_margin"]
@@ -100,13 +100,14 @@ SPARSE_SEARCH_PARAMS = config["vector_database"]["search_params"][
 # Search & retrieval configuration
 DEFAULT_K = config["search_retrieval"]["vector_search"]["default_k"]
 RERANK_TOP_K = config["search_retrieval"]["reranking"]["rerank_top_k"]
-MAX_CONTEXT_LENGTH = config["search_retrieval"]["response_generation"][
-    "max_context_length"
-]
 SIMILARITY_THRESHOLD = config["search_retrieval"]["vector_search"][
     "similarity_threshold"
 ]
 
+# LLM configuration
+MAX_CONTEXT_LENGTH = config["prompts"]["llm_config"]["max_context_length"]
+MAX_OUTPUT_TOKENS = config["prompts"]["llm_config"]["max_tokens"]
+TEMPERATURE = config["prompts"]["llm_config"]["temperature"]
 
 # Session ID for logging
 PROCESSING_SESSION_ID = str(uuid.uuid4())[:8]

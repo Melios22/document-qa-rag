@@ -9,9 +9,9 @@ from langchain_docling import DoclingLoader
 from langchain_docling.loader import ExportType
 from tqdm.auto import tqdm
 
-from .. import (
+from ..constant import (
     CHUNKER_MODEL,
-    MAX_TOKENS,
+    MAX_CHUNK_TOKENS,
     OVERLAP_TOKENS,
     PDF_INPUT_DIR,
     PROCESSING_SESSION_ID,
@@ -50,7 +50,7 @@ def process_pdfs() -> List[Document]:
     try:
         chunker = HybridChunker(
             tokenizer=CHUNKER_MODEL,
-            max_tokens=MAX_TOKENS,
+            max_tokens=MAX_CHUNK_TOKENS,
             overlap_tokens=OVERLAP_TOKENS,
         )
         logger.milestone("Chunker initialized successfully")

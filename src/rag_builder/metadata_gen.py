@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from langchain.schema import Document
 
-from .. import (
+from ..constant import (
     BATCH_SIZE,
     COLLECTION_NAME,
     DEVICE,

@@ -14,7 +14,7 @@ from langchain.schema import Document
 from ..constant import COLLECTION_NAME, EMBED_MODEL_ID, EMBEDDING_DIM, ENCODE_KWARGS
 from .connection_manager import get_milvus_client
 from .milvus import build_indexes, ensure_hybrid_collection, insert_documents
-from .vector_bge_m3 import BGEM3Encoder
+from .encoder import BGEM3Encoder
 
 
 def load_encoder() -> BGEM3Encoder:

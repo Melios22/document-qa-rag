@@ -8,6 +8,8 @@ Common interface for all LLM models in the RAG system.
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from ...constant import MAX_OUTPUT_TOKENS, TEMPERATURE
+
 
 class BaseLLM(ABC):
     """Base class for all LLM implementations"""
@@ -16,8 +18,8 @@ class BaseLLM(ABC):
         self,
         model_id: str,
         api_key: Optional[str] = None,
-        max_tokens: int = 1024,
-        temperature: float = 0.0,
+        max_tokens: int = MAX_OUTPUT_TOKENS,
+        temperature: float = TEMPERATURE,
         **kwargs
     ):
         """
