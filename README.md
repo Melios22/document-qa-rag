@@ -1,8 +1,8 @@
-# Vietnamese PDF RAG — End‑to‑End, Production‑Ready (VN/EN)
+# Vietnamese PDF RAG — End‑to‑End
 
 Build a recruiter‑ready, end‑to‑end Retrieval‑Augmented Generation (RAG) system for Vietnamese PDF documents: preprocess PDFs → build a hybrid vector DB (dense + sparse) → ask questions via CLI, API, or Streamlit UI with multi‑LLM support (Gemini, Watsonx).
 
-Key strengths:
+## Features
 
 - Hybrid search with BGE‑M3 (dense + sparse) and Milvus, with RRF fusion and reranking
 - Unified class `VietnameseRAG` as a single, clean entry point for the full flow
@@ -32,7 +32,7 @@ document-qa-rag/
 │
 ├─ data/                     # PDFs, processed outputs, local Milvus DB
 ├─ logs/                     # Preprocess/build/retrieval/error/QA logs
-├─ reqs/                     # Requirements per stage
+├─ requirements/                     # Requirements per stage
 ├─ docker-compose.yml        # Optional: Milvus service
 ├─ .env.example              # Environment template
 └─ requirements.txt          # Install all stages at once
@@ -47,7 +47,7 @@ document-qa-rag/
 - Python 3.10+
 - Optional: Docker (for Milvus service)
 
-1) Install dependencies
+2) Install dependencies
 
 ```bash
 python -m venv .venv
@@ -57,7 +57,7 @@ pip install -r reqs/requirements-build.txt        # stage 2: build vector DB
 pip install -r reqs/requirements-retrieval.txt    # stage 3: retrieval + UI/API
 ```
 
-1) Configure environment
+3) Configure environment
 
 Create a `.env` file using `.env.example` as a reference:
 
@@ -71,7 +71,7 @@ WATSONX_API_KEY=...
 WATSONX_PROJECT_ID=...
 ```
 
-1) Run the pipeline
+4) Run the pipeline
 
 - Preprocess PDFs in `data/pdfs/`:
 
@@ -107,67 +107,32 @@ python ./simple_api.py
 
 ---
 
-## Unified architecture (VietnameseRAG)
+## Usage
 
-```python
-from src.rag_retriever import VietnameseRAG
+Put PDFs in `data/pdfs/`, then run:
 
-rag = VietnameseRAG(
-    model_type="gemini",  # or "watsonx"
-    k=10,                  # initial retrieval count
-    rerank_top_k=5,        # final reranked results
-)
+```bash
+# 1) Preprocess
+python ./main_preprocess.py
 
-# Full RAG
-result = rag.answer("Học máy là gì?")
-print(result["answer"])
+# 2) Build vector DB
+python ./main_build_rag.py
 
-# Only retrieve
-docs = rag.search("machine learning")
+# 3) Ask questions (CLI)
+python ./main_search_rag.py
 
-# Switch model anytime
-rag.switch_model("watsonx")
+# Optional UIs
+streamlit run ./streamlit_app.py   # Web UI
+python ./simple_api.py             # Minimal API
 ```
-
-Internals (clean modularity):
-
-- DocumentRetriever: dense+sparse hybrid search, RRF fusion, reranking
-- AnswerGenerator: LLM prompt generation and answer synthesis
-
-Benefits:
-
-- Single entry point with a clean API
-- Hybrid search (BGE‑M3) with RRF + rerank (BGE‑Reranker‑v2‑m3)
-- Multi‑LLM via a factory (Gemini, Watsonx) with easy hot‑swap
-- Structured logging and Q&A history out of the box
 
 ---
 
-## How it works
+## Concepts
 
-Hybrid search
-
-- Dense + sparse embeddings via BGE‑M3
-- Milvus for vector storage; HNSW (Docker) or IVF_FLAT (local file)
-- Reciprocal Rank Fusion (RRF) to combine dense+sparse results
-- Optional reranking with BGE‑Reranker‑v2‑m3
-
-LLM integration
-
-- Factory pattern with a simple BaseLLM interface
-- Google Gemini (google‑genai) and IBM Watsonx supported
-- Consistent `generate(prompt)` API
-
-Vietnamese focus
-
-- Text normalization and cleaning for Vietnamese
-- Multilingual embeddings with good VN performance
-- Stopwords, UTF‑8 correctness throughout
-
-Logging
-
-- Separate logs per stage (preprocess/build/retrieval/errors)
-- QA history log with sources and scores for auditability
+- Hybrid search: BGE‑M3 (dense + sparse) + RRF + optional reranker
+- Pluggable LLMs: Gemini or Watsonx via a simple factory
+- Vietnamese‑aware processing: cleaning, stopwords, UTF‑8 safety
 
 ---
 
@@ -235,11 +200,4 @@ Logs
 
 ---
 
-## What recruiters should notice
-
-- End‑to‑end ownership: ingestion → embeddings → vector DB → hybrid retrieval → LLM answer
-- Clear separation of concerns and cohesive APIs
-- Robustness: logging, error handling, and environment configuration
-- Practical deployment options and documentation that make it easy to run
-
-If you want me to tailor this to your data or infrastructure (GPU/Cloud, new LLMs, or custom evaluators), it’s designed to extend cleanly.
+ 
