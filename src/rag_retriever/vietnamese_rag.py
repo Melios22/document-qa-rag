@@ -335,7 +335,11 @@ class VietnameseRAG:
         self._current_model_type = model_type
 
         # Initialize Milvus client
-        self.client = client or get_milvus_client()
+        if client is None:
+            # get_milvus_client returns (client, supports_hnsw)
+            self.client, _ = get_milvus_client()
+        else:
+            self.client = client
 
         # Load models
         self.embedding_model = embedding_model or get_embedding_model()
@@ -492,7 +496,5 @@ def get_vietnamese_rag(**kwargs) -> VietnameseRAG:
     Returns:
         VietnameseRAG instance
     """
-    return VietnameseRAG(**kwargs)
-    return VietnameseRAG(**kwargs)
     return VietnameseRAG(**kwargs)
     return VietnameseRAG(**kwargs)

@@ -37,7 +37,9 @@ def _ensure_models_loaded():
 
     if not _models_loaded:
         print("Loading RAG models (one time only)...")
-        client, embedding_model, reranker_model = load_retrieval_models()
+        # Load models and client
+        client, _ = get_milvus_client()
+        _, embedding_model, reranker_model = load_retrieval_models()
         _rag = VietnameseRAG(
             client=client,
             collection_name=COLLECTION_NAME,

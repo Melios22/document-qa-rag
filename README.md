@@ -1,367 +1,245 @@
-# Vietnamese RAG System - Complete Project Guide
+# Vietnamese PDF RAG — End‑to‑End, Production‑Ready (VN/EN)
 
-## 🎯 High-Level Overview
+Build a recruiter‑ready, end‑to‑end Retrieval‑Augmented Generation (RAG) system for Vietnamese PDF documents: preprocess PDFs → build a hybrid vector DB (dense + sparse) → ask questions via CLI, API, or Streamlit UI with multi‑LLM support (Gemini, Watsonx).
 
-This is a **complete Vietnamese Retrieval-Augmented Generation (RAG) system** that processes PDF documents, builds a hybrid vector database, and provides intelligent question-answering capabilities using advanced language models.
+Key strengths:
 
-### 🔧 **System Architecture**
-
-```
-📄 PDF Documents → 🔄 Preprocessing → 🗃️ Vector Database → 🤖 RAG Query System
-```
-
-**Key Components:**
-- **Document Processing**: PDF extraction and text cleaning
-- **Hybrid Search**: BGE-M3 dense+sparse embeddings with Milvus vector database  
-- **Unified RAG Class**: Single class with internal modularity for complete RAG flow
-- **Multi-LLM Support**: Google Gemini and IBM Watsonx integration
-- **Vietnamese Language**: Optimized for Vietnamese text processing
+- Hybrid search with BGE‑M3 (dense + sparse) and Milvus, with RRF fusion and reranking
+- Unified class `VietnameseRAG` as a single, clean entry point for the full flow
+- Practical packaging: logs, configs, Docker for Milvus, env templating, and runbooks
+- Designed for Vietnamese: text cleaning, token heuristics, stopwords, multilingual embeddings
 
 ---
 
-## 📂 **Project Structure**
+## Project structure
 
-```
-vietnamese-rag-system/
+```text
+document-qa-rag/
 │
-├── 🚀 **MAIN APPLICATIONS**
-│   ├── main_preprocess.py      # Step 1: Process PDF documents
-│   ├── main_build_rag.py       # Step 2: Build vector database  
-│   ├── main_search_rag.py      # Step 3: Interactive RAG queries
-│   ├── streamlit_app.py        # Web UI interface
-│   └── simple_api.py           # REST API interface
+├─ main_preprocess.py        # Step 1: Process PDF documents
+├─ main_build_rag.py         # Step 2: Build vector database
+├─ main_search_rag.py        # Step 3: Interactive RAG queries (CLI)
+├─ streamlit_app.py          # Web UI interface
+├─ simple_api.py             # Minimal API interface
 │
-├── 🧠 **CORE RAG SYSTEM** (src/)
-│   ├── preprocess/             # Document preprocessing
-│   │   ├── process_pdf.py      # PDF extraction
-│   │   ├── cleaner.py          # Text cleaning
-│   │   ├── metadata_gen.py     # Metadata generation
-│   │   └── storage.py          # Document storage
-│   │
-│   ├── rag_builder/            # Vector database building
-│   │   ├── builder.py          # Main RAG builder
-│   │   ├── connection_manager.py # Database connections
-│   │   ├── milvus.py           # Milvus operations
-│   │   ├── model_loader.py     # Model loading
-│   │   └── vector_bge_m3.py    # BGE-M3 embeddings
-│   │
-│   ├── rag_retriever/          # **UNIFIED RAG SYSTEM** ⭐
-│   │   ├── vietnamese_rag.py   # **MAIN UNIFIED CLASS**
-│   │   ├── hybrid_search.py    # Hybrid search logic
-│   │   ├── llm_caller.py       # LLM integration
-│   │   ├── model_loader.py     # Model utilities
-│   │   └── models/             # LLM implementations
-│   │       ├── base_llm.py     # Base LLM interface
-│   │       ├── factory.py      # Model factory
-│   │       ├── gemini_llm.py   # Google Gemini
-│   │       └── watsonx_llm.py  # IBM Watsonx
-│   │
-│   ├── utils/
-│   │   └── logging.py          # Centralized logging
-│   │
-│   ├── config.json             # System configuration
-│   └── constant.py             # System constants
+├─ src/
+│  ├─ preprocess/            # PDF extraction, cleaning, chunk metadata, storage
+│  ├─ rag_builder/           # Vector DB (Milvus) building + BGE‑M3 encoder
+│  ├─ rag_retriever/         # Unified RAG + hybrid search + LLMs
+│  ├─ utils/                 # Logging utilities
+│  ├─ config.json            # System configuration
+│  └─ constant.py            # Constants loaded from config
 │
-├── 📊 **DATA & STORAGE**
-│   ├── data/
-│   │   ├── pdf/                # Input PDF documents
-│   │   ├── processed/          # Processed documents
-│   │   ├── milvus.db           # Vector database
-│   │   └── vietnamese-stopwords.txt
-│   └── logs/                   # System logs
-│
-├── 📓 **EXAMPLES & DOCS**
-│   ├── notebooks/
-│   │   └── example.ipynb       # Usage examples
-│   ├── ESSENTIAL_STRUCTURE.md  # This guide
-│   └── requirements.txt        # Dependencies
-│
-└── 🔧 **CONFIG & DEPLOYMENT**
-    ├── .env                    # Environment variables
-    ├── docker-compose.yml      # Container deployment
-    └── .gitignore             # Git configuration
+├─ data/                     # PDFs, processed outputs, local Milvus DB
+├─ logs/                     # Preprocess/build/retrieval/error/QA logs
+├─ reqs/                     # Requirements per stage
+├─ docker-compose.yml        # Optional: Milvus service
+├─ .env.example              # Environment template
+└─ requirements.txt          # Install all stages at once
 ```
 
 ---
 
-## 🚀 **How to Use the System**
+## Quick start
 
-### **Prerequisites**
+1) Python and environment
+
+- Python 3.10+
+- Optional: Docker (for Milvus service)
+
+1) Install dependencies
+
 ```bash
-# 1. Install Python 3.8+
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Set up environment variables (create .env file)
-GOOGLE_API_KEY=your_gemini_api_key
-WATSONX_URL=your_watsonx_url
-WATSONX_API_KEY=your_watsonx_key
-WATSONX_PROJECT_ID=your_project_id
+python -m venv .venv
+source .venv/bin/activate
+pip install -r reqs/requirements-preprocess.txt   # stage 1: preprocess
+pip install -r reqs/requirements-build.txt        # stage 2: build vector DB
+pip install -r reqs/requirements-retrieval.txt    # stage 3: retrieval + UI/API
 ```
 
-### **Step-by-Step Usage**
+1) Configure environment
 
-#### **Step 1: Process Documents** 📄➡️🔄
-```bash
-python main_preprocess.py
-```
-**What it does:**
-- Reads PDF files from `data/pdf/`
-- Extracts and cleans text content
-- Generates metadata for each document
-- Saves processed documents to `data/processed/`
+Create a `.env` file using `.env.example` as a reference:
 
-#### **Step 2: Build Vector Database** 🔄➡️🗃️
-```bash
-python main_build_rag.py
-```
-**What it does:**
-- Loads processed documents
-- Creates BGE-M3 embeddings (dense + sparse)
-- Builds Milvus vector database
-- Optimizes for hybrid search
+```env
+# Google Gemini
+GEMINI_API_KEY=...
 
-#### **Step 3: Query the System** 🗃️➡️🤖
-```bash
-python main_search_rag.py
-```
-**What it does:**
-- Loads the complete RAG system
-- Provides interactive command-line interface
-- Performs hybrid search + LLM answer generation
-- Logs all Q&A interactions
-
-#### **Alternative Interfaces**
-
-**Web UI (Streamlit):**
-```bash
-streamlit run streamlit_app.py
+# IBM Watsonx
+WATSONX_URL=...
+WATSONX_API_KEY=...
+WATSONX_PROJECT_ID=...
 ```
 
-**REST API:**
+1) Run the pipeline
+
+- Preprocess PDFs in `data/pdfs/`:
+
 ```bash
-python simple_api.py
+python ./main_preprocess.py
+```
+
+- Build the hybrid vector DB:
+
+```bash
+python ./main_build_rag.py
+```
+
+- Query from CLI:
+
+```bash
+python ./main_search_rag.py
+```
+
+Alternative interfaces:
+
+- Streamlit UI:
+
+```bash
+streamlit run ./streamlit_app.py
+```
+
+- Minimal API:
+
+```bash
+python ./simple_api.py
 ```
 
 ---
 
-## 🧠 **Core RAG System - Unified Architecture**
-
-### **Main Class: `VietnameseRAG`** ⭐
+## Unified architecture (VietnameseRAG)
 
 ```python
 from src.rag_retriever import VietnameseRAG
 
-# Initialize the unified system
 rag = VietnameseRAG(
     model_type="gemini",  # or "watsonx"
-    k=10,                 # initial retrieval count
-    rerank_top_k=5,       # final reranked results
+    k=10,                  # initial retrieval count
+    rerank_top_k=5,        # final reranked results
 )
 
-# Complete RAG flow - One method does everything!
-result = rag.answer("What is machine learning?")
-print(result['answer'])
+# Full RAG
+result = rag.answer("Học máy là gì?")
+print(result["answer"])
 
-# Or just search documents
+# Only retrieve
 docs = rag.search("machine learning")
 
-# Switch models easily
+# Switch model anytime
 rag.switch_model("watsonx")
-
-# Check system status
-print(rag.status)
 ```
 
-### **Internal Architecture (Modular Subclasses)**
+Internals (clean modularity):
 
-The `VietnameseRAG` class uses **internal subclasses** for clean modularity:
+- DocumentRetriever: dense+sparse hybrid search, RRF fusion, reranking
+- AnswerGenerator: LLM prompt generation and answer synthesis
 
-```python
-class VietnameseRAG:
-    class DocumentRetriever:    # Internal: handles search & reranking
-    class AnswerGenerator:      # Internal: handles LLM generation
-    
-    # Main API methods:
-    def answer(query):         # Complete RAG flow
-    def search(query):         # Document search only  
-    def switch_model(type):    # Change LLM model
-    def status():              # System information
-```
+Benefits:
 
-**Benefits:**
-- ✅ **Single file** with complete functionality
-- ✅ **Internal modularity** via subclasses
-- ✅ **Clean API** - main `answer()` method
-- ✅ **Easy model switching**
-- ✅ **Backward compatibility**
+- Single entry point with a clean API
+- Hybrid search (BGE‑M3) with RRF + rerank (BGE‑Reranker‑v2‑m3)
+- Multi‑LLM via a factory (Gemini, Watsonx) with easy hot‑swap
+- Structured logging and Q&A history out of the box
 
 ---
 
-## 🔧 **Technical Deep Dive**
+## How it works
 
-### **Hybrid Search System**
-- **BGE-M3 Model**: Dense + sparse embeddings in one model
-- **Milvus Database**: High-performance vector storage
-- **RRF Fusion**: Combines dense and sparse search results
-- **Reranking**: Final relevance scoring for top results
+Hybrid search
 
-### **LLM Integration**
-- **Factory Pattern**: Easy addition of new models
-- **Multiple Models**: Google Gemini, IBM Watsonx
-- **Unified Interface**: Same API for all models
-- **Error Handling**: Graceful fallbacks and logging
+- Dense + sparse embeddings via BGE‑M3
+- Milvus for vector storage; HNSW (Docker) or IVF_FLAT (local file)
+- Reciprocal Rank Fusion (RRF) to combine dense+sparse results
+- Optional reranking with BGE‑Reranker‑v2‑m3
 
-### **Vietnamese Language Support**
-- **Stopwords**: Vietnamese-specific text filtering
-- **BGE-M3**: Multilingual model with Vietnamese support
-- **Text Cleaning**: Vietnamese text preprocessing
-- **Encoding**: Proper UTF-8 handling throughout
+LLM integration
 
-### **Logging System**
-- **File-based**: Separate logs for each component
-- **Milestone Tracking**: Important events highlighted
-- **Q&A History**: Complete interaction logging
-- **Error Management**: Comprehensive error tracking
+- Factory pattern with a simple BaseLLM interface
+- Google Gemini (google‑genai) and IBM Watsonx supported
+- Consistent `generate(prompt)` API
+
+Vietnamese focus
+
+- Text normalization and cleaning for Vietnamese
+- Multilingual embeddings with good VN performance
+- Stopwords, UTF‑8 correctness throughout
+
+Logging
+
+- Separate logs per stage (preprocess/build/retrieval/errors)
+- QA history log with sources and scores for auditability
 
 ---
 
-## 📋 **Configuration**
+## Configuration
 
-### **Main Configuration (`src/config.json`)**
+Main config: `src/config.json` (key excerpts)
+
+Note: You can change settings in `src/config.json` to match your environment (model IDs, Milvus connection, and search/retrieval parameters like k and rerank_top_k).
+
 ```json
 {
-  "models": {
-    "embedding": "BAAI/bge-m3",
-    "reranker": "BAAI/bge-reranker-v2-m3"
+  "embedding_model": { "model_id": "BAAI/bge-m3" },
+  "reranker_model": { "model_id": "BAAI/bge-reranker-v2-m3" },
+  "vector_database": {
+    "connection": { "use_docker": false, "collection_name": "vndoc_rag_hybrid" },
+    "hybrid_search": { "dense_weight": 0.7, "sparse_weight": 0.3, "rrf_k": 30 }
   },
-  "retrieval": {
-    "k": 10,
-    "rerank_top_k": 5,
-    "similarity_threshold": 0.3
-  },
-  "llm": {
-    "default_model": "gemini",
-    "temperature": 0.1
-  }
+  "search_retrieval": { "vector_search": { "default_k": 10 }, "reranking": { "rerank_top_k": 3 } }
 }
 ```
 
-### **Environment Variables (`.env`)**
-```bash
-# Google Gemini
-GOOGLE_API_KEY=your_gemini_api_key
+Environment (`.env`)
 
-# IBM Watsonx
-WATSONX_URL=your_watsonx_url
-WATSONX_API_KEY=your_watsonx_key
-WATSONX_PROJECT_ID=your_project_id
-
-# Optional: Database settings
-MILVUS_HOST=localhost
-MILVUS_PORT=19530
+```env
+GEMINI_API_KEY=...
+WATSONX_URL=...
+WATSONX_API_KEY=...
+WATSONX_PROJECT_ID=...
 ```
 
 ---
 
-## 🧪 **Testing & Development**
+## Deployment
 
-### **Quick Test**
-```bash
-python test_essentials.py
-```
+Local Milvus (Docker):
 
-### **Development Workflow**
-1. **Add documents**: Place PDFs in `data/pdf/`
-2. **Preprocess**: Run `main_preprocess.py`
-3. **Build**: Run `main_build_rag.py`  
-4. **Test**: Run `main_search_rag.py`
-5. **Deploy**: Use `streamlit_app.py` or `simple_api.py`
-
-### **Adding New LLM Models**
-1. Create new model class in `src/rag_retriever/models/`
-2. Inherit from `BaseLLM`
-3. Add to factory in `factory.py`
-4. Use with `rag.switch_model("your_model")`
-
----
-
-## 🐳 **Deployment**
-
-### **Docker Deployment**
 ```bash
 docker-compose up -d
 ```
 
-### **Production Considerations**
-- **GPU Support**: For faster embedding generation
-- **API Rate Limits**: Monitor LLM API usage
-- **Vector Database**: Consider Milvus cluster for scale
-- **Caching**: Implement query result caching
-- **Security**: Secure API endpoints and environment variables
+Production notes
+
+- GPU for faster embedding generation (optional)
+- Monitor LLM API usage/quotas
+- Consider Milvus cluster for scale + persistence
+- Add caching on top of retrieval or answers if needed
 
 ---
 
-## 📈 **Performance & Scaling**
+## Troubleshooting
 
-### **Current Capabilities**
-- **Document Capacity**: 1000+ documents tested
-- **Query Speed**: ~2-5 seconds per query
-- **Accuracy**: High relevance with BGE-M3 + reranking
-- **Languages**: Vietnamese + multilingual support
+Common issues
 
-### **Optimization Tips**
-- **Batch Processing**: Process documents in batches
-- **GPU Acceleration**: Use CUDA for model inference
-- **Index Tuning**: Optimize Milvus index parameters
-- **Model Caching**: Cache loaded models in memory
+- "No documents found": add PDFs to `data/pdfs/` and rerun preprocessing
+- "Vector database not found": build via `main_build_rag.py`
+- LLM errors: check API keys in `.env` and network; verify provider quotas
 
----
+Logs
 
-## 🆘 **Troubleshooting**
-
-### **Common Issues**
-
-**"No module named 'langchain'"**
-```bash
-pip install -r requirements.txt
-```
-
-**"No documents found"**
-- Check `data/pdf/` folder has PDF files
-- Run `main_preprocess.py` first
-
-**"Vector database not found"**
-- Run `main_build_rag.py` after preprocessing
-
-**"LLM API errors"**
-- Check your API keys in `.env` file
-- Verify internet connection
-- Check API quota/rate limits
-
-### **Log Files**
-- `logs/preprocess.log` - Document processing
-- `logs/builder.log` - Vector database building
-- `logs/retriever.log` - RAG query operations
-- `logs/errors.log` - All errors
-- `logs/qa_history.log` - Question-answer history
+- `logs/preprocess.log` — document processing
+- `logs/builder.log` — vector DB building
+- `logs/retriever.log` — RAG retrieval
+- `logs/errors.log` — errors
+- `logs/qa_history.log` — question/answer history
 
 ---
 
-## 🎉 **Summary**
+## What recruiters should notice
 
-This Vietnamese RAG system provides:
+- End‑to‑end ownership: ingestion → embeddings → vector DB → hybrid retrieval → LLM answer
+- Clear separation of concerns and cohesive APIs
+- Robustness: logging, error handling, and environment configuration
+- Practical deployment options and documentation that make it easy to run
 
-✅ **Complete End-to-End Pipeline** from PDF to intelligent answers  
-✅ **Unified Architecture** with single main class and internal modularity  
-✅ **Multiple LLM Support** (Gemini, Watsonx) with easy switching  
-✅ **Hybrid Search** using state-of-the-art BGE-M3 embeddings  
-✅ **Vietnamese Language Optimization** throughout the pipeline  
-✅ **Production Ready** with logging, error handling, and deployment options  
-✅ **Developer Friendly** with clean APIs and comprehensive documentation  
-
-**Perfect for:** Vietnamese document Q&A systems, knowledge bases, research assistants, and educational applications.
-
----
-
-*Need help? Check the logs, review the configuration, or examine the example notebook for detailed usage patterns.*
+If you want me to tailor this to your data or infrastructure (GPU/Cloud, new LLMs, or custom evaluators), it’s designed to extend cleanly.

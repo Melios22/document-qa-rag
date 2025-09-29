@@ -58,7 +58,7 @@ def perform_retrieval(rag, query: str) -> Tuple[List[Document], List[float]]:
         return [], []
 
 
-def generate_answer(rag, query: str, documents: List[Document]) -> str:
+def generate_answer(rag, query: str, documents: List[Document]) -> Dict[str, Any]:
     """
     Generate an answer using LLM based on retrieved documents.
 
@@ -80,8 +80,8 @@ def generate_answer(rag, query: str, documents: List[Document]) -> str:
     try:
         logger.milestone(f"Generating answer for query: {query[:50]}...")
 
-        # Use the answer generator directly
-        answer_result = rag.answer_generator.generate_answer(query, documents)
+        # Use the generator on the RAG instance
+        answer_result = rag.generator.generate_answer(query, documents)
 
         logger.info("Answer generation completed")
         return {
@@ -162,8 +162,9 @@ def main():
         logger.info("Loading RAG system components")
 
         # Load individual components using new unified structure
-        client, supports_hnsw = get_milvus_client()
-        embedding_model, reranker_model = load_retrieval_models()
+        client, _ = get_milvus_client()
+        # load_retrieval_models returns (client, embedding_model, reranker_model)
+        _, embedding_model, reranker_model = load_retrieval_models()
 
         rag = VietnameseRAG(
             client=client,

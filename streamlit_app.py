@@ -74,4 +74,3 @@ with st.sidebar:
             with st.expander(f"Document {i+1} (Score: {doc['score']:.3f})"):
                 st.write(f"**Source:** {doc['source']}")
                 st.write(doc["content"][:200] + "...")
-                st.write(doc["content"][:200] + "...")

@@ -1,0 +1,143 @@
+# Vietnamese RAG System Configuration
+# Version: 1.0.0
+# Description: RAG system optimized for Vietnamese documents using BGE-M3 embeddings
+
+_config_info:
+  name: "Vietnamese RAG System Configuration"
+  version: "1.0.0"
+  description: "RAG system optimized for Vietnamese documents using BGE-M3 embeddings"
+
+# All paths relative to project root
+data_paths:
+  _description: "All paths relative to project root"
+  input:
+    pdf_documents: "data/pdfs"
+  output:
+    processed_documents: "data/processed"
+    vector_database: "data/milvus.db"
+    logs: "logs"
+  generated_files:
+    processed_docs: "data/processed/processed_docs.pkl"
+    metadata: "data/processed/metadata.json"
+
+# PDF processing and text chunking settings optimized for local execution
+document_processing:
+  _description: "PDF processing and text chunking settings optimized for local execution"
+  chunking:
+    max_tokens_per_chunk: 1024
+    overlap_tokens: 128
+    chars_per_token: 3
+    safety_margin: 50
+  batch_processing:
+    batch_size: 16
+    max_retries: 3
+
+# BGE-M3 multilingual embedding model configuration optimized for local CPU
+embedding_model:
+  _description: "BGE-M3 multilingual embedding model configuration optimized for local CPU"
+  model_id: "BAAI/bge-m3"
+  embedding_dimension: 1024
+  use_hybrid_search: true
+  model_kwargs:
+    device: "cpu"
+    trust_remote_code: true
+  encode_kwargs:
+    normalize_embeddings: true
+    batch_size: 8
+    return_dense: true
+    return_sparse: true
+    return_colbert_vecs: false
+
+# BGE Reranker for improving search relevance - optimized for local CPU
+reranker_model:
+  _description: "BGE Reranker for improving search relevance - optimized for local CPU"
+  model_id: "BAAI/bge-reranker-v2-m3"
+  use_fp16: false
+  max_length: 512
+
+# Milvus vector database configuration with Docker support and HNSW indexing
+vector_database:
+  _description: "Milvus vector database configuration with Docker support and HNSW indexing"
+  connection:
+    uri: "data/milvus.db"
+    docker_uri: "http://localhost:19530"
+    use_docker: false
+    collection_name: "vndoc_rag_hybrid"
+  hybrid_search:
+    dense_weight: 0.7
+    sparse_weight: 0.3
+    rrf_k: 30
+  indexing:
+    dense_index:
+      index_type: "HNSW"
+      metric_type: "COSINE"
+      params:
+        M: 16
+        efConstruction: 64
+    dense_index_fallback:
+      index_type: "IVF_FLAT"
+      metric_type: "COSINE"
+      params:
+        nlist: 256
+    sparse_index:
+      index_type: "SPARSE_INVERTED_INDEX"
+      metric_type: "IP"
+      params:
+        drop_ratio_build: 0.2
+  search_params:
+    dense_search_params:
+      metric_type: "COSINE"
+      params:
+        ef: 32
+    dense_search_params_fallback:
+      metric_type: "COSINE"
+      params:
+        nprobe: 8
+    sparse_search_params:
+      metric_type: "IP"
+      params:
+        drop_ratio_search: 0.2
+
+# Search and retrieval behavior settings optimized for local performance
+search_retrieval:
+  _description: "Search and retrieval behavior settings optimized for local performance"
+  vector_search:
+    default_k: 10
+    similarity_threshold: 0.2
+  reranking:
+    rerank_top_k: 3
+
+# Logging configuration for different stages
+logging:
+  _description: "Logging configuration for different stages"
+  level: "WARNING"
+  files:
+    preprocessing: "logs/preprocess.log"
+    rag_building: "logs/builder.log"
+    retrieval: "logs/retriever.log"
+    errors: "logs/errors.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Prompt templates and LLM configuration for different use cases
+prompts:
+  _description: "Prompt templates and LLM configuration for different use cases"
+  llm_config:
+    max_context_length: 4096
+    max_tokens: 1024
+    temperature: 0.0
+  default_vietnamese: |
+    Bạn là một chuyên gia trí tuệ nhân tạo và học máy có kiến thức sâu rộng. Hãy trả lời câu hỏi dựa trên thông tin được cung cấp từ hệ thống RAG.
+
+    CÂU HỎI: {query}
+
+    THÔNG TIN THAM KHẢO:
+    {context}
+
+    HƯỚNG DẪN TRẢ LỜI:
+    1. Trả lời bằng tiếng Việt một cách chi tiết và rõ ràng
+    2. Chỉ sử dụng thông tin có trong các tài liệu được cung cấp - KHÔNG tự bịa đặt hoặc thêm thông tin
+    3. Mỗi nguồn tài liệu là riêng biệt - KHÔNG trộn lẫn hoặc kết hợp thông tin từ các nguồn khác nhau một cách tùy tiện
+    4. Nếu thông tin từ các nguồn khác nhau mâu thuẫn, hãy chỉ ra sự khác biệt này
+    5. Giải thích các thuật ngữ kỹ thuật bằng tiếng Việt
+    6. Trích dẫn rõ ràng nguồn thông tin cho mỗi phần trả lời
+    7. Nếu thông tin không đủ để trả lời đầy đủ, hãy thừa nhận điều này thay vì đoán

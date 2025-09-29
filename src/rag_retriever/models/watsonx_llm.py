@@ -9,7 +9,7 @@ import os
 from typing import Optional
 
 from dotenv import load_dotenv
-from langchain_ibm import WatsonxLLM as Wastonx
+from langchain_ibm import WatsonxLLM as Watsonx
 
 from ...constant import MAX_OUTPUT_TOKENS, TEMPERATURE
 from ...utils.logging import get_logger
@@ -45,21 +45,22 @@ class WatsonxLLM(BaseLLM):
         super().__init__(model_id, api_key, max_tokens, temperature)
 
         load_dotenv()
-        self.project_id = project_id or os.getenv("WASTONX_PROJECT_ID")
-        self.api_key = self.api_key or os.getenv("WASTONX_API")
-        self.url = url or os.getenv("WASTONX_URL")
+        # Standardize env var names
+        self.project_id = project_id or os.getenv("WATSONX_PROJECT_ID")
+        self.api_key = self.api_key or os.getenv("WATSONX_API_KEY")
+        self.url = url or os.getenv("WATSONX_URL")
 
         if not all([self.project_id, self.api_key, self.url]):
             missing = []
             if not self.project_id:
-                missing.append("WASTONX_PROJECT_ID")
+                missing.append("WATSONX_PROJECT_ID")
             if not self.api_key:
-                missing.append("WASTONX_API")
+                missing.append("WATSONX_API_KEY")
             if not self.url:
-                missing.append("WASTONX_URL")
+                missing.append("WATSONX_URL")
             raise ValueError(f"Missing environment variables: {', '.join(missing)}")
 
-        self.llm = Wastonx(
+        self.llm = Watsonx(
             model_id=self.model_id,
             url=self.url,
             apikey=self.api_key,

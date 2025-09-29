@@ -1,7 +1,5 @@
-data/* 
+data/**
 !data/vietnamese-stopwords.txt
-!data/pdfs
-logs/
 llm.py
 
 # Byte-compiled / optimized / DLL files

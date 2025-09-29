@@ -81,4 +81,3 @@ def build_hybrid_vectorstore(documents: List[Document], batch_size: int = 32) ->
     index_type = "HNSW" if supports_hnsw else "IVF_FLAT"
     print(f"✅ Hybrid vectorstore built successfully with {index_type} indexing!")
     return True
-    return True

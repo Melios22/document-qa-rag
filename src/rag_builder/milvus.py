@@ -2,19 +2,11 @@
 Milvus Hybrid (dense + sparse) collection utilities
 ===================================================
 
-Implements hybrid search with configurable parameters from config.json:
-1) Schema with id (VARCHAR), text, dense_vector (FLOAT_VECTOR), sparse_vector (SPARSE_FLOAT_VECTOR), metadata (JSON)
-2) Insert both         return formatted_results
-
-    except Exception as e:
-        log        return rrf_results
-
-    except Exception as e:
-        logger.error(f"Error in RRF fusion: {e}")
-        return []rror(f"Error in hybrid search: {e}")
-        return [] and sparse vectors
-3) Query with collection.hybrid_search using RRF fusion
-4) Support for both Docker and file-based Milvus with automatic HNSW detection
+Implements hybrid search with parameters from config.json:
+1) Schema: id (VARCHAR), text, dense_vector (FLOAT_VECTOR), sparse_vector (SPARSE_FLOAT_VECTOR), metadata (JSON)
+2) Insert both dense and sparse vectors
+3) Query with Collection.hybrid_search using RRF fusion
+4) Support Docker Milvus and local file-based Milvus with automatic HNSW detection
 """
 
 import json
